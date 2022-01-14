@@ -1,0 +1,36 @@
+#define _CRT_SECURE_NO_WARNINGS 1
+#include<iostream>
+using namespace std;
+class Person
+{
+public:
+	void init(const char *name,int id,int higth)
+	{
+		strcpy(_name, name);
+		_id = id;
+		_higth = higth;
+	}
+	void print()
+	{
+		cout << _name << " " << _id << " " << _higth << endl;
+	}
+private:
+	char _name[10];
+	int _id;
+	int _higth;
+};
+class A
+{
+
+};
+int main()
+{
+	Person p1;
+	p1.init("张三",10,180);
+	p1.print();
+	char* p;
+	//cout << sizeof(p) << endl;
+	cout << sizeof(A) << endl;
+	cout << sizeof(p1) << endl;
+	cout << sizeof(Person) << endl;
+}
