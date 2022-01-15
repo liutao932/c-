@@ -1,0 +1,57 @@
+#include<iostream>
+using namespace std;
+
+class A
+{
+public:
+	A()
+	{
+		cout << "A()" << endl;
+	}
+};
+class Data
+{
+public:
+	//Data()   //常规
+	//{
+	//	_year = 2022;
+	//	_month = 1;
+	//	_day = 15;
+	//}
+	//Data(int year, int month, int day)   //不推荐，推荐写成参数全缺省
+	//{
+	//	this->_year = year;
+	//	this->_month = month;
+	//	this->_day = day;
+	//}
+	/*Data(int year = 0, int month = 20, int day = 0)
+	{
+		this->_year = year;
+		this->_month = month;
+		this->_day = day;
+
+	}*/
+	Data()
+	{
+		cout << "Data()" << endl;
+	}
+	void print()
+	{
+		cout << _year << " " << _month << " " << _day << endl;
+	}
+private:
+	int _year;     //内置数据类型可以调用默认构造，自定义数据类型只能调用自定义的默认构造
+	int _month;
+	int _day;
+
+	A aa;    
+};
+int main()
+{
+	//Data ta(2022,1,15);
+	Data ta;
+	//ta.print();
+	//Data ta1();   巨坑错误调用，构造函数不能这样调用，构造函数调用，实例化是自动调用
+	//Data ta1;
+	//ta1.print();
+}
