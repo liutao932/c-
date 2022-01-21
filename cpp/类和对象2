@@ -1,0 +1,129 @@
+#include<iostream>
+using namespace std;
+
+
+//class Data
+//{
+//public:
+//	Data() {};
+//	Data(int year = 2022 , int month=1, int day=21) :_year(year), _month(month), _day(day) {};
+//private :
+//	int _year;
+//	int _month;
+//	int _day;
+//	static int i;
+//};
+//
+//int main()
+//{
+//	Data d1;   //存在二义性
+//	Data d2(2022, 1, 21);
+//	//Data d3(); //这种用法是调用函数，一般认为是错误的用法
+//
+//}
+
+//class Date
+//{
+//public:
+//	Date()
+//	{
+//		_year = 1900;
+//		_month = 1;
+//		_day = 1;
+//	}
+//
+//	Date(int year = 1900, int month = 1, int day = 1)
+//	{
+//		_year = year;
+//		_month = month;
+//		_day = day;
+//	}
+//private:
+//	int _year;
+//	int _month;
+//	int _day;
+//};
+//// 以下测试函数能通过编译吗？
+//void Test()
+//{
+//	Date d1;
+//}
+
+//class Time
+//{
+//public:
+//	Time() { cout << "Time()" << endl; }   
+//	//Time(int hour) { cout << "Time()" << endl; }
+//	~Time() {};
+//};
+//class Data
+//{
+//public:
+//	Data(int year = 2022, int month = 1, int day = 21) :_year(year), _month(month), _day(day) {};
+//	~Data() {};
+//private:
+//	int _year;
+//	int _month;
+//	int _day;
+//	//Time tt =1;     //c++11定义的标准，这里我们先不做解释
+//	Time tt;      //对于自定义类型，回去调用它的默认构造函数，没有默认构造函数会报错
+//				 //同理析构也一样
+//};
+
+//int main()
+//{
+//	Data d1;   
+//	Data d2(2022, 1, 21);
+//	//Data d3(); //这种用法是调用函数，一般认为是错误的用法
+//
+//}
+
+#pragma warning(disable:4996)
+//class String
+//{
+//public:
+// String(const char* str = "jack")
+// {
+// _str = (char*)malloc(strlen(str) + 1);
+// strcpy(_str, str);
+// }
+// ~String()
+// {
+// cout << "~String()" << endl;
+// free(_str);
+// }
+//private:
+// char* _str;
+//};
+//class Person
+//{
+//private:
+//	String _name;
+//	int _age;
+//};
+//int main()
+//{
+//	Person p;
+//	return 0;
+//}
+
+
+//class Data 
+//{
+//public:
+//	Data(int year = 2022, int month = 1, int day = 21) :_year(year), _month(month), _day(day) {}
+//	//拷贝构造必须加引用，不然会无限递归
+//	Data(const Data &d) :_year(d._year),_month(d._month),_day(d._day){}  
+//	void print()const { cout << _year << _month << _day << endl; }
+//private:
+//	int _year;
+//	int _month;
+//	int _day;
+//};
+//int main()
+//{
+//	Data d1(2021, 10, 1);
+//	Data d2(d1);
+//	d1.print();
+//	d2.print();
+//}
