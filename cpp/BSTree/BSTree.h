@@ -2,108 +2,233 @@
 #include<iostream>
 using namespace std;
 
-template<class K>
-struct BrinaryTreeNode
+template <class K>
+class BSTreeNode
 {
-	BrinaryTreeNode(const K& key)
+public:
+	BSTreeNode(const K& val)
 		:_left(nullptr)
 		, _right(nullptr)
-		, key(key)
-	{}
-	BrinaryTreeNode<K>* _left;
-	BrinaryTreeNode<K>* _right;
-	K key;
+		, _val(val)
+	{
+
+	}
+	BSTreeNode<K>* _left;
+	BSTreeNode<K>* _right;
+	K _val;
 };
-template<class K>
+
+template <class K>
 class BSTree
 {
-	typedef BrinaryTreeNode<K> Node;
-private:
-	Node* _find(Node* root, const K& key)
+
+public:
+	typedef BSTreeNode<K> Node;
+	BSTree() :_root(nullptr) {};
+	bool insert(const K& val)   //插入
 	{
-		if (root == nullptr)
+		if (_root == nullptr)
 		{
-			return nullptr;
-		}
-		if (key > root->key)
-		{
-			return _find(root->_right, key);
-		}
-		else if (key < root->key)
-		{
-			return _find(root->_left, key);
-		}
-		else
-		{
-			return root;
-		}
-	}
-	bool _insertR(Node*& root, const K& key)
-	{
-		if (root == nullptr)
-		{
-			root = new Node(key);
+			_root = new Node(val);
 			return true;
 		}
-		if (key > root->key)
+		Node* cur = _root;
+		Node* parent = nullptr;
+		while (cur != nullptr)
 		{
-			_insertR(root->_right, key);
+			if (val > cur->_val)
+			{
+				parent = cur;
+				cur = cur->_right;
+			}
+			else if (val < cur->_val)
+			{
+				parent = cur;
+				cur = cur->_left;
+			}
+			else
+			{
+				return false;
+			}
 		}
-		else if (key < root->key)
+		if (val > parent->_val)
+			parent->_right = new Node(val);
+		else
+			parent->_left = new Node(val);
+		return true;
+	}
+	bool find(const K& val)  //查找
+	{
+		Node* cur = _root;
+		while (cur != nullptr)
 		{
-			_insertR(root->_left, key);
+			if (val > cur->_val)
+				cur = cur->_right;
+			else if (val < cur->_val)
+				cur = cur->_left;
+			else
+				return true;
+		}
+		return false;
+	}
+	bool erase(const K& val) //删除
+	{
+		Node* cur = _root;
+		Node* parent = nullptr;
+		while (cur != nullptr)
+		{
+			if (val > cur->_val)
+			{
+				parent = cur;
+				cur = cur->_right;
+			}
+			else if (val < cur->_val)
+			{
+				parent = cur;
+				cur = cur->_left;
+			}
+			else    //找到要删除的节点
+			{
+				//叶子节点和只有一个节点的可以统一处理
+				if (cur->_left == nullptr)
+				{
+					//这里要判断删除的是不是跟节点，当cur == root时,parent == nullptr
+					if (parent == nullptr)
+						_root = _root ->_right;
+					else
+					{
+						if (parent->_left == cur)
+							parent->_left = cur->_right;
+						else
+							parent->_right = cur->_right;
+					}
+					delete cur;
+				}
+				else if(cur->_right == nullptr)
+				{
+					if (parent == nullptr)
+						_root = _root ->_left;
+					else
+					{
+						if (parent->_left == cur)
+							parent->_left = cur->_left;
+						else
+							parent->_right = cur->_left;
+					}
+					delete cur;
+				}
+				else
+				{
+					Node* minparent = cur;   //防止minparent出现空的情况
+					Node* min = cur->_right;
+					while (min->_left != nullptr)
+					{
+						minparent = min;
+						min = min->_left;
+					}
+	
+					cur->_val = min->_val;
+
+					if(minparent->_left == min)
+						minparent->_left = min->_right;
+					else
+						minparent->_right = min->_right;
+					delete min;
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+protected:
+	bool _findR(Node* root, const K& val)
+	{
+		if (root == nullptr)
+		{
+			return false;
+		}
+		if (val > root->_val)
+		{
+			_findR(root->_right, val);
+		}
+		else if (val < root->_val)
+		{
+			_findR(root->_left, val);
+		}
+		else
+		{
+			return true;
+		}
+	}
+	bool _insertR(Node*& root, const K& val)
+	{
+		if (root == nullptr)
+		{
+			root = new Node(val);
+			return true;
+		}
+		if (val > root->_val)
+		{
+			_insertR(root->_right, val);
+		}
+		else if (val < root->_val)
+		{
+			_insertR(root->_left, val);
 		}
 		else
 		{
 			return false;
 		}
 	}
-	bool _erase(Node*& root, const K& key)
+	bool _eraseR(Node*& root, const K& val)
 	{
 		if (root == nullptr)
 			return false;
-		if (key > root->key)
-		{
-			_erase(root->_right, key);
-		}
-		else if (key < root->key)
-		{
-			_erase(root->_left, key);
-		}
+
+		if (val > root->_val)
+			_eraseR(root->_right, val);
+
+		else if (val < root->_val)
+			_eraseR(root->_left, val);
+
 		else
 		{
 			Node* del = root;
 			if (root->_left == nullptr)
-			{
 				root = root->_right;
-			}
 			else if (root->_right == nullptr)
-			{
 				root = root->_left;
-			}
 			else
 			{
 				Node* min = root->_right;
-				while (min)
+				while (min->_left != nullptr)
 				{
 					min = min->_left;
 				}
-				if(min)
-				swap(min->key, root->key);
-				_erase(root->_right, key);
+
+				swap(min->_val, root->_val);
+				_eraseR(root->_right, val);
 			}
 			delete del;
 			return true;
 		}
 	}
 public:
-	BSTree()
-		:root(nullptr)
-	{}
-
-	void paint()   //morris遍历
+	bool findR(const K& val)
 	{
-		Node* cur = root;
+		return _findR(_root, val);
+	}
+	bool insertR(const K& val)
+	{
+		return _insertR(_root, val);
+	}
+	bool eraseR(const K& val)
+	{
+		return _eraseR(_root, val);
+	}
+	/*void print()  //遍历
+	{
+		Node* cur = _root;
 		Node* MostRight = nullptr;
 		while (cur != nullptr)
 		{
@@ -121,142 +246,29 @@ public:
 					continue;
 				}
 				else
+				{
 					MostRight->_right = nullptr;
+				}
 			}
-			cout << cur->key << " ";
+			cout << cur->_val << " ";
 			cur = cur->_right;
 		}
+		cout << endl;
 	}
-	bool insert(const K& key)  //插入
+	*/
+	void _print(Node* root)
 	{
-		if (root == nullptr)  //如果根节点为空，那么就创建根
-		{
-			root = new Node(key);
-			return true;
-		}
-		Node* cur = root;
-		Node* parent = nullptr;
-		while (cur)
-		{
-			if (cur->key < key)
-			{
-				parent = cur;
-				cur = cur->_right;
-			}
-			else if (cur->key > key)
-			{
-				parent = cur;
-				cur = cur->_left;
-			}
-			else
-				return false;
-		}
-		cur = new Node(key);
-		if (key > parent->key)    //判断插入的节点在父亲的左边还是右边
-			parent->_right = cur;
-		else
-			parent->_left = cur;
-		return true;
+		if (root == nullptr)
+			return;
+		_print(root->_left);
+		cout << root->_val << " ";
+		_print(root->_right);
 	}
-	bool insertR(const K& key)
+	void print()
 	{
-		return _insertR(root, key);
-	}
-	bool findR(const K& key)
-	{
-		return _find(root, key) == nullptr ? false : true;
-	}
-	bool eraseR(const K& key)
-	{
-		return _erase(root, key);
-	}
-	bool find(const K& key)
-	{
-		Node* cur = root;
-		while (cur)
-		{
-			if (cur->key < key)
-				cur = cur->_right;
-			else if (cur->key > key)
-				cur = cur->_left;
-			else
-				return true;
-		}
-		return false;
-	}
-	bool erase(const K& val)
-	{
-		Node* parent = nullptr;
-		Node* cur = root;
-		while (cur != nullptr)
-		{
-			if (cur->key < val)
-			{
-				parent = cur;
-				cur = cur->_right;
-			}
-			else if (cur->key > val)
-			{
-				parent = cur;
-				cur = cur->_left;
-			}
-			else  //找到了
-			{
-				if (cur->_left == nullptr)  //叶子节点和只有一个孩子的节点可以统一处理。
-				{
-					if (parent == nullptr)  //如果要删除的节点是根节点就让根节点右移
-					{
-						root = root->_right;
-					}
-					else
-					{
-						if (cur == parent->_left)   
-							parent->_left = cur->_right;
-						else
-							parent->_right = cur->_right;
-					}
-					delete cur;
-				}
-				else if (cur->_right == nullptr)
-				{
-					if (parent == nullptr)
-					{
-						root = root->_left;
-					}
-					else
-					{
-						if (cur == parent->_left)   
-							parent->_left = cur->_left;
-						else
-							parent->_right = cur->_left;
-					}
-					delete cur;
-				}
-				else
-				{
-					Node* minparent = cur;    //这里是关键父亲给成 cur可以避免出现minparent是空的情况
-
-					Node* min = cur->_right;
-					while (min != nullptr)   //找到右子树最左节点
-					{
-						minparent = min;
-						min = min->_left;
-					}
-					if(min)
-					cur->key = min->key;   //替换法删除
-
-
-					if (min->_left == minparent)
-						minparent->_left = min->_right;
-					else
-						minparent->_right = min->_right;
-					delete min;
-				}
-				return true;
-			}
-		}
-		return false;
+		_print(_root);
+		cout << endl;
 	}
 private:
-	Node* root;
+	Node* _root;
 };
