@@ -272,3 +272,6 @@ public:
 private:
 	Node* _root;
 };
+
+	int array[] = { 1,5,6,7,9,8,4,3,2 };
+
