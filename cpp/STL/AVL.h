@@ -1,33 +1,32 @@
-#pragma once
 #include<iostream>
-#include<stack>
 #include<assert.h>
-#define NUM 0
-template<class K, class V>
+
+template <class K, class V>
 class AVLTreeNode
 {
 public:
-	AVLTreeNode(const std::pair<K,V> kv = std::pair<K,V>())
+	AVLTreeNode<K, V>* _left;
+	AVLTreeNode<K, V>* _right;
+	AVLTreeNode<K, V>* _parent;
+	int _bf;
+	std::pair<K, V> _kv;
+	AVLTreeNode(const std::pair<K,V>& kv)
 		:_left(nullptr)
 		,_right(nullptr)
 		,_parent(nullptr)
 		,_kv(kv)
-		,_bf(NUM)
+		,_bf(0)
 	{
-
+		
 	}
-	AVLTreeNode<K, V>* _left;
-	AVLTreeNode<K, V>* _right;
-	AVLTreeNode<K, V>* _parent;
-	std::pair<K, V> _kv;
-	int _bf; //balance number
 };
 template<class K,class V>
 class AVLTree
 {
 public:
 	typedef AVLTreeNode<K, V> Node;
-	AVLTree() :_root(nullptr)
+	AVLTree()
+		:_root(nullptr)
 	{
 
 	}
@@ -40,14 +39,14 @@ public:
 		}
 		Node* parent = nullptr;
 		Node* cur = _root;
-		while (cur != nullptr)   // 找到插入的位置
+		while (cur != nullptr)
 		{
 			if (kv.first > cur->_kv.first)
 			{
 				parent = cur;
 				cur = cur->_right;
 			}
-			else if(kv.first < cur->_kv.first)
+			else if (kv.first < cur->_kv.first)
 			{
 				parent = cur;
 				cur = cur->_left;
@@ -57,77 +56,105 @@ public:
 				return false;
 			}
 		}
-		//申请新节点插入在AVL中
-		cur = new Node(kv);
-		if (kv.first > parent->_kv.first)
-		{
-			parent->_right = cur;
-		}
-		else
-		{
-			parent->_left = cur;
-		}
-		//更新平衡因子
-		while (parent != nullptr)
-		{
-			if (cur == parent->_right)  //比他大平衡因子加加
+			cur = new Node(kv);
+			if (kv.first > parent->_kv.first)
 			{
-				parent->_bf++;
+				parent->_right = cur;
+				cur->_parent = parent;
 			}
 			else
-			{ 
-				parent->_bf--;   //比他小平衡因子减减
-			}
-			if (parent->_bf == 0)
 			{
-				break;        //不需要更新了，跳出循环
+				parent->_left = cur;
+				cur->_parent = parent;
 			}
-			else if (parent->_bf == 1 || parent->_bf == -1)  //继续往上跟新
+				
+			//更新平衡因子
+			while (parent != nullptr)
 			{
-				cur = parent;
-				parent = parent->_parent;
-			}
-			else if (parent->_bf == 2 || parent->_bf == -2) //旋转
-			{
-				if (parent->_bf == 2 && cur->_bf == 1) //右单旋
+				if (cur == parent->_left)
+					parent->_bf--;
+				else
+					parent->_bf++;
+
+				if (parent->_bf == 0)  //不用更新
 				{
-					RotateR(parent);
+					break;
 				}
-				else if (parent->_bf == -2 && cur->_bf == -1) //左单旋
+				else if (parent->_bf == 1 || parent->_bf == -1)  //继续往上更新
 				{
-					RotateL(parent);
+					cur = parent;
+					parent = parent->_parent;
 				}
-				else if (parent->_bf == 2 && cur->_bf == -1)  //右左单旋(右单选 + 左单旋)
+				else if(parent->_bf == 2 || parent->_bf == -2) //旋转
 				{
-					RotateRL(parent);
-				}
-				else if (parent->_bf == -2 && cur->_bf == 1) //左右单旋(左单旋 + 右单旋）
-				{
-					RotateLR(parent);
+					if (parent->_bf == 2 && cur->_bf == 1) //左单旋
+					{
+						RotateL(parent);
+					}
+					else if (parent->_bf == -2 && cur->_bf == -1) //右单旋
+					{
+						RotateR(parent);
+					}
+					else if (parent->_bf == 2 && cur->_bf == -1) //右左双旋
+					{
+						RotateRL(parent);
+					}
+					else if (parent->_bf == -2 && cur->_bf == 1) //左右双旋
+					{
+						RotateLR(parent);
+					}
+					else
+					{
+						assert(false);
+					}
+
+					break;
 				}
 				else
 				{
 					assert(false);
 				}
-				break;
 			}
-			else
-			{
-				assert(false);
-			}
-			return true;
-		}
-	}	
+		return true;
+	}
 private:
+	void RotateL(Node* parent)  //左单旋
+	{
+		Node* subR = parent->_right;
+		Node* subRL = subR->_left;
+		Node* parentparent = parent->_parent;
+
+		parent->_right = subRL;
+		if (subRL != nullptr)
+			subRL->_parent = parent;
+
+		subR->_left = parent;
+		parent->_parent = subRL;
+		if (parent == _root)
+		{
+			_root = subR;
+			subR->_parent = nullptr;
+		}
+		else
+		{
+			if (parentparent->_left == parent)
+				parentparent->_left = subR;
+			else
+				parentparent->_right = subR;
+			subR->_parent = parentparent;
+		}
+		subR->_bf = parent->_bf = 0;
+	}
 	void RotateR(Node* parent)
 	{
 		Node* subL = parent->_left;
-		Node* subLR = subL->_left;
+		Node* subLR = subL->_right;
 		Node* parentparent = parent->_parent;
 
 		parent->_left = subLR;
 		if (subLR != nullptr)
 			subLR->_parent = parent;
+
 		subL->_right = parent;
 		parent->_parent = subL;
 		if (parent == _root)
@@ -140,41 +167,17 @@ private:
 			if (parentparent->_left == parent)
 				parentparent->_left = subL;
 			else
-				parentparent->_right = subL;
+				parentparent->_right = subL;		
+			subL->_parent = parentparent;
 		}
 		subL->_bf = parent->_bf = 0;
 	}
-	void RotateL(Node* parent)
-	{
-		Node* subR = parent->_right;
-		Node* subRL = subR->_left;
-		Node* parentparent = parent->_parent;
-
-		parent->_right = subRL;
-		if (subRL != nullptr)
-		{
-			subRL->_parent = parent;
-		}
-		parent->_parent = subR;
-		if (parent == _root)
-		{
-			_root = subR;
-			subR->_parent = nullptr;
-		}
-		else
-		{
-			if (parentparent->_left == parent)
-				parentparent->_left = subR;
-			else
-				parent->_right = subR;
-		}
-		subR->_bf = parent->_bf = 0;
-	}
-	void RotateRL(Node* parent)  //右单旋 + 左单旋
+	void RotateRL(Node* parent)
 	{
 		Node* subR = parent->_right;
 		Node* subRL = subR->_left;
 		int bf = subRL->_bf;
+
 		RotateR(parent->_right);
 		RotateL(parent);
 		if (bf == 0)
@@ -183,16 +186,16 @@ private:
 			subR->_bf = 0;
 			subRL->_bf = 0;
 		}
-		else if (bf == 1)  //在右边插入
+		else if (bf == 1)
 		{
 			parent->_bf = -1;
 			subR->_bf = 0;
 			subRL->_bf = 0;
 		}
-		else if (bf == -1) //在左边插入
+		else if (bf == -1)
 		{
-			subR->_bf = 1;
 			parent->_bf = 0;
+			subR->_bf = 1;
 			subRL->_bf = 0;
 		}
 		else
@@ -200,7 +203,7 @@ private:
 			assert(false);
 		}
 	}
-	void RotateLR(Node* parent) //左单旋 + 右单旋
+	void RotateLR(Node* parent)
 	{
 		Node* subL = parent->_left;
 		Node* subLR = subL->_right;
@@ -213,13 +216,13 @@ private:
 			subL->_bf = 0;
 			subLR->_bf = 0;
 		}
-		else if (bf == 1)  //在右边插入
+		else if (bf == 1)
 		{
-			subL->_bf = -1;
 			parent->_bf = 0;
+			subL->_bf = -1;
 			subLR->_bf = 0;
 		}
-		else if (bf == -1)  //在左边插入
+		else if (bf == -1)
 		{
 			parent->_bf = 1;
 			subL->_bf = 0;
@@ -233,21 +236,6 @@ private:
 public:
 	void inoder()
 	{
-		std::stack<Node*> st;
-		Node* cur = _root;
-		while (cur != nullptr || !st.empty())
-		{
-			while (cur != nullptr)
-			{
-				st.push(cur);
-				cur = cur->_left;
-			}
-			Node* top = st.top();
-			std::cout << top->_kv.first << ":" << top->_kv.second << std::endl;
-			st.pop();
-			cur = top->_right;
-		}
-		/*
 		Node* cur = _root;
 		Node* MostRight = nullptr;
 		while (cur != nullptr)
@@ -267,14 +255,14 @@ public:
 				}
 				else
 				{
-					MostRight->_right = nullptr;
+					MostRight->_right = cur;
 				}
 			}
 			std::cout << cur->_kv.first << ":" << cur->_kv.second << std::endl;
 			cur = cur->_right;
 		}
-		*/
 	}
 private:
 	Node* _root;
 };
+
