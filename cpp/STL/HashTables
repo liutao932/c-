@@ -1,0 +1,348 @@
+#pragma once
+#pragma once
+#include<iostream>
+#include<vector>
+
+template<class K>
+class Hash
+{
+public:
+	size_t operator()(const K& key)
+	{
+		return key;
+	}
+};
+template<>
+class Hash<std::string>
+{
+public:
+	size_t operator()(const std::string& key)
+	{
+		size_t value = 0;
+		for (const auto& e : key)
+		{
+			value *= 31;
+			value += e;
+		}
+		return value;
+	}
+};
+namespace CloseHash
+{
+	enum Status
+	{
+		EXIST,
+		EMPTY,
+		DELETE
+	};
+	template<class K, class V>
+	class HashData
+	{
+	public:
+		std::pair<K, V> _kv;
+		Status _status = EMPTY;
+	};
+
+	template<class K, class V, class HashFunc = Hash<K>>
+	class HashTable
+	{
+	public:
+		HashData<K, V>* find(const K& key)
+		{
+			if (_tables.size() == 0)
+				return nullptr;
+			HashFunc hf;
+			size_t  start = hf(key) % _tables.size();
+			size_t i = 0;
+			size_t index = start;
+			while (_tables[index]._status != EMPTY)
+			{
+				if (_tables[index]._kv.first == key && _tables[index]._status == EXIST)
+				{
+					return &_tables[index];
+				}
+				++i;
+				index = start + i;
+				index %= _tables.size();
+			}
+			return nullptr;
+		}
+		bool insert(const std::pair<K, V>& kv)
+		{
+			HashData<K, V>* ret = find(kv.first);
+			if (ret != nullptr)
+				return false;
+			if (_tables.size() == 0 || _n * 10 / _tables.size() >= 7)  //扩容
+			{
+				size_t newSize = _tables.size() == 0 ? 10 : _tables.size() * 2;
+				HashTable<K, V> newHT;
+				newHT._tables.resize(newSize);
+				for (size_t i = 0; i < _tables.size(); ++i)
+				{
+					newHT.insert(_tables[i]._kv);
+				}
+				_tables.swap(newHT._tables);
+			}
+			HashFunc hf;
+			size_t start = hf(kv.first) % _tables.size();
+			size_t i = 0;
+			size_t index = start;
+			//线性探测 or 二次探测
+			while (_tables[index]._status == EXIST)
+			{
+				++i;
+				index = start + i;
+				//index = start + i * i;
+				index %= _tables.size();
+			}
+			_tables[index]._kv = kv;
+			_tables[index]._status = EXIST;
+			++_n;
+			return true;
+		}
+		bool erase(const K& key)
+		{
+			HashData<K, V>* ret = find(key);
+			if (ret == nullptr)
+				return false;
+			ret->_status = DELETE;
+			--_n;
+			return true;
+		}
+	private:
+		std::vector<HashData<K, V>> _tables;
+		size_t _n = 0;   //有效数据个数
+	};
+}
+namespace OpenHash
+{
+	template<class T>
+	class HashNode
+	{
+	public:
+		HashNode(const T & data)
+			:_data(data)
+			, _next(nullptr)
+		{
+
+		}
+		T _data;
+		HashNode<T>* _next;
+	};
+
+	template<class K, class T, class KeyOfT, class HashFunc>
+	class HashTable;
+
+	template<class T,class Ref,class Ptr,class K,class KeyOfT,class HashFunc>
+	class HashTableIterator
+	{
+	public:
+		typedef HashNode<T> Node;
+		typedef HashTableIterator<T, Ref, Ptr,K,KeyOfT,HashFunc> Self;
+
+		HashTableIterator(Node* node, HashTable<K, T, KeyOfT, HashFunc>* pht)
+			:_node(node)
+			,_pht(pht)
+		{
+
+		}
+		Ref operator*()
+		{
+			return _node->_data;
+		}
+		Ptr operator->()
+		{
+			return &_node->_data;
+		}
+		Self& operator++()
+		{
+			if (_node->_next != nullptr)   //说明当前桶还没走完
+			{
+				_node = _node->_next;
+			}
+			else
+			{
+				HashFunc hf;
+				KeyOfT kot;
+				size_t index = hf(kot(_node->_data)) % _pht->_tables.size();    //这里指针访问不了私有成员，可以用友元
+				++index;
+				while (index < _pht->_tables.size())
+				{
+					if (_pht->_tables[index] != nullptr)
+					{
+						break;
+					}
+					else
+					{
+						++index;
+					}
+				}
+				//走到有两中情况
+				if (index == _pht->_tables.size())
+				{
+					_node = nullptr;
+				}
+				else
+				{
+					_node = _pht->_tables[index];
+				}
+			}
+			return *this;
+		}
+		bool operator!=(const Self& s)
+		{
+			return _node != s._node;
+		}
+		bool operator==(const Self& s)
+		{
+			return _node == s._node;
+		}
+	private:
+		Node* _node;
+		HashTable<K, T, KeyOfT, HashFunc>* _pht;
+	};
+
+	template<class K, class T,class KeyOfT, class HashFunc = Hash<K>>
+	class HashTable
+	{
+	public:
+		typedef HashNode<T> Node;
+		
+		typedef HashTableIterator<T, T&, T*, K, KeyOfT, HashFunc> iterator;
+		template<class T, class Ref, class Ptr, class K, class KeyOfT, class HashFunc>
+		friend class HashTableIterator;
+		/*HashTable() //需要在初始化列表初始化vector和_n;所以需要提供默认构造
+		{
+
+		}*/
+		HashTable() = default;  // c++11
+
+		HashTable(const HashTable<K, T, KeyOfT, HashFunc>& s)
+		{
+			_tables.resize(s._tables.size());
+			for (size_t i = 0; i < s._tables.size(); ++i)
+			{
+				Node* cur = s._tables[i];
+				while (cur != nullptr)
+				{
+					Node* copy = new Node(cur->_data);
+					copy->_next = _tables[i];
+					_tables[i] = copy;
+
+					cur = cur->_next;
+				}
+			}
+		}
+		HashTable<K, T, KeyOfT, HashFunc>& operator=(HashTable<K, T, KeyOfT, HashFunc> s)
+		{
+			swap(_n, s._n);
+			_tables.swap(s._tables);
+			return *this;
+		}
+
+		iterator begin()
+		{
+			for (size_t i = 0; i < _tables.size(); ++i)
+			{
+				if (_tables[i] != nullptr)
+					return iterator(_tables[i], this); //把表指针传递过去
+			}
+			return end();
+		}
+		iterator end()
+		{
+			return iterator(nullptr, this);
+		}
+		iterator find(const K& key)
+		{
+			HashFunc hf;
+			KeyOfT kot;
+			if (_tables.size() == 0)
+				return end();
+
+			size_t index = hf(key) % _tables.size();
+			if (_tables[index] == nullptr)
+				return end();
+
+			HashNode<T>* cur = _tables[index];
+			while (cur != nullptr)
+			{
+				if (kot(cur->_data) == key)
+					return iterator(cur,this);
+				cur = cur->_next;
+			}
+			return end();
+		}
+		bool erase(const K& key)
+		{
+			if (_tables.empty())
+				return false;
+			HashFunc hf;
+			size_t index = hf(key) % _tables.size();
+			Node* prev = nullptr;
+			Node* cur = _tables[index];
+			while (cur != nullptr)
+			{
+				if (kot(cur->_data) == key)
+				{
+					if (prev == nullptr)
+					{
+						_tables[index] = cur->_next;
+					}
+					else
+					{
+						prev->_next = cur->_next;
+					}
+					delete cur;
+					break;
+				}
+				prev = cur;
+				cur = cur->_next;
+			}
+			--_n;
+			return true;
+		}
+
+		std::pair<iterator,bool> insert(const T& data)
+		{
+			KeyOfT kot;
+			//HashNode<T>* ret = find(kot(data));
+			iterator ret = find(kot(data));
+			if (ret != end())
+				return std::make_pair(ret,false);
+			HashFunc hf;
+			if (_n == _tables.size())  //扩容
+			{
+				size_t newSize = _tables.size() == 0 ? 10 : _tables.size() * 2;
+				std::vector<Node*> NewVector;
+				NewVector.resize(newSize);
+
+				for (size_t i = 0; i < _tables.size(); ++i)
+				{
+					Node* cur = _tables[i];
+					while (cur != nullptr)
+					{
+						Node* next = cur->_next;
+						size_t index = hf(kot(cur->_data)) % NewVector.size();
+
+						cur->_next = NewVector[index];
+						NewVector[index] = cur;
+
+						cur = next;
+					}
+					_tables[i] = nullptr;
+				}
+				_tables.swap(NewVector);
+			}
+			size_t index = hf(kot(data)) % _tables.size();
+			Node* newnode = new Node(data);
+			newnode->_next = _tables[index];
+			_tables[index] = newnode;
+			++_n;
+			return std::make_pair(iterator(newnode, this), true);
+		}
+	private:
+		std::vector<Node*> _tables;
+		size_t _n = 0; //有效数据个数
+	};
+}
