@@ -35,56 +35,159 @@ namespace CloseHash
 		EMPTY,
 		DELETE
 	};
-	template<class K, class V>
+	template<class T>
 	class HashData
 	{
 	public:
-		std::pair<K, V> _kv;
+		T _data;
 		Status _status = EMPTY;
 	};
 
-	template<class K, class V, class HashFunc = Hash<K>>
+	template<class K, class T, class KeyofT, class HashFunc>
+	class HashTable;
+	template<class T, class Ref, class Ptr, class K, class KetofT, class HashFuc>
+	class HashIterator
+	{
+	public:
+		typedef HashData<T> Node;
+		typedef HashIterator< T, Ref, Ptr, K, KetofT, HashFuc> Self;
+		HashIterator( Node* node, HashTable<K, T, KetofT, HashFuc>* pht)
+			:_node(node)
+			,_pht(pht)
+		{
+
+		}
+		Ref operator*()
+		{
+			return _node->_data;
+		}
+		Ptr operator->()
+		{
+			return &_node->_data;
+		}
+
+		Self& operator++()
+		{
+			if (_node == &(_pht->_tables[_pht->_tables.size() - 1]))
+			{
+				_node = nullptr;
+				return *this;
+			}
+			Node* next = _node + 1;
+			while (next != &(_pht->_tables[_pht->_tables.size() - 1]) )
+			{
+				if (next->_status == EXIST)
+				{
+					break;
+				}
+				else
+				{
+					next++;
+				}
+			}
+			if (next->_status == EXIST)
+			{
+				_node = next;
+			}
+			else
+			{
+				_node = nullptr;
+			}
+			return *this;
+		}
+		bool operator!=(const Self& s)const
+		{
+			return _node != s._node;
+		}
+		bool operator==(const Self& s) const
+		{
+			return _node == s._node;
+		}
+	private:
+		Node* _node;
+		HashTable<K, T, KetofT, HashFuc>* _pht;
+	};
+
+	template<class K, class T, class KeyofT, class HashFunc = Hash<K>>
 	class HashTable
 	{
 	public:
-		HashData<K, V>* find(const K& key)
+		template<class T, class Ref, class Ptf, class K, class KetofT, class HashFuc>
+		friend class HashIterator;
+		typedef HashIterator< T,  T&,  T*, K, KeyofT, HashFunc> iterator;
+
+		HashTable() = default;
+		HashTable(const HashTable<K, T, KeyofT, HashFunc>& s)
 		{
+			_tables.resize(s._tables.size());
+			for (size_t i = 0; i < _tables.size(); ++i)
+			{
+				_tables[i]._status = s._tables[i]._status;
+				_tables[i]._data = s._tables[i]._data;
+			}
+		}
+		HashTable<K, T, KeyofT, HashFunc>& operator=(HashTable<K, T, KeyofT, HashFunc> s)
+		{
+			_tables.swap(s._tables);
+			swap(_n, s._n);
+			return *this;
+ 		}
+		~HashTable() = default;
+
+		iterator begin()
+		{
+			for (size_t i = 0; i < _tables.size(); ++i)
+			{
+				if (_tables[i]._status == EXIST)
+					return iterator(&_tables[i], this);
+			}
+		}
+		iterator end()
+		{
+			return iterator(nullptr, this);
+		}
+		iterator find(const K& key)
+		{
+			KeyofT kot;
 			if (_tables.size() == 0)
-				return nullptr;
+				return end();
 			HashFunc hf;
 			size_t  start = hf(key) % _tables.size();
 			size_t i = 0;
 			size_t index = start;
 			while (_tables[index]._status != EMPTY)
 			{
-				if (_tables[index]._kv.first == key && _tables[index]._status == EXIST)
+				if (kot(_tables[index]._data) == key && _tables[index]._status == EXIST)
 				{
-					return &_tables[index];
+					//return &_tables[index];
+					return iterator(&_tables[index], this);
 				}
 				++i;
 				index = start + i;
 				index %= _tables.size();
 			}
-			return nullptr;
+			return end();
 		}
-		bool insert(const std::pair<K, V>& kv)
+
+		std::pair<iterator,bool> insert(const T& data)
 		{
-			HashData<K, V>* ret = find(kv.first);
-			if (ret != nullptr)
-				return false;
+			KeyofT kot;
+			iterator ret = find(kot(data));
+			if (ret != end())
+				return std::make_pair(ret,this);
 			if (_tables.size() == 0 || _n * 10 / _tables.size() >= 7)  //扩容
 			{
 				size_t newSize = _tables.size() == 0 ? 10 : _tables.size() * 2;
-				HashTable<K, V> newHT;
+				HashTable<K,T,KeyofT,HashFunc> newHT;
 				newHT._tables.resize(newSize);
 				for (size_t i = 0; i < _tables.size(); ++i)
 				{
-					newHT.insert(_tables[i]._kv);
+					newHT.insert(_tables[i]._data);
 				}
 				_tables.swap(newHT._tables);
 			}
 			HashFunc hf;
-			size_t start = hf(kv.first) % _tables.size();
+			size_t start = hf(kot(data)) % _tables.size();
 			size_t i = 0;
 			size_t index = start;
 			//线性探测 or 二次探测
@@ -95,25 +198,28 @@ namespace CloseHash
 				//index = start + i * i;
 				index %= _tables.size();
 			}
-			_tables[index]._kv = kv;
+			_tables[index]._data = data;
 			_tables[index]._status = EXIST;
 			++_n;
-			return true;
+			return std::make_pair(iterator(&_tables[index],this),true);
 		}
 		bool erase(const K& key)
 		{
-			HashData<K, V>* ret = find(key);
+			HashData<T>* ret = find(key);
 			if (ret == nullptr)
 				return false;
 			ret->_status = DELETE;
 			--_n;
 			return true;
 		}
+
 	private:
-		std::vector<HashData<K, V>> _tables;
+		std::vector<HashData<T>> _tables;
 		size_t _n = 0;   //有效数据个数
 	};
+
 }
+
 namespace OpenHash
 {
 	template<class T>
