@@ -1,0 +1,1 @@
+/opt/rh/devtoolset-9/root/usr/bin/c++    -Wall -fPIC -pipe -std=c++11 -fno-exceptions -O2 -g -DNDEBUG   CMakeFiles/redis_cli.dir/tutorial-02-redis_cli.cc.o  -o ../redis_cli  -L/home/liutao/workflow/_lib -Wl,-rpath,/home/liutao/workflow/_lib -lworkflow -lpthread /usr/lib64/libssl.so /usr/lib64/libcrypto.so /usr/lib64/librt.so 

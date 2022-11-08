@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/liutao/workflow/src/algorithm/DnsRoutine.cc
+sys/types.h
+-
+sys/socket.h
+-
+sys/un.h
+-
+errno.h
+-
+netdb.h
+-
+stddef.h
+-
+stdio.h
+-
+string.h
+-
+string
+-
+DnsRoutine.h
+/home/liutao/workflow/src/algorithm/DnsRoutine.h
+
+/home/liutao/workflow/src/algorithm/DnsRoutine.h
+netdb.h
+-
+string
+-
+
