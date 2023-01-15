@@ -15,6 +15,7 @@ bool Parser::load_file(const std::string &file)
     ss << in.rdbuf();
     _str = ss.str();
     _index = 0;
+    in.close();
     return true;
 }
 bool Parser::load_string(const std::string &str)

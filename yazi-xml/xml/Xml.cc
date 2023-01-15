@@ -17,51 +17,51 @@ Vaule::Vaule(double vaule)
 {
     *this = vaule;
 }
-Vaule::Vaule(const char *vaule) : _vaule(vaule)
+Vaule::Vaule(const char* vaule) : _vaule(vaule)
 {
 }
-Vaule::Vaule(const std::string &vaule) : _vaule(vaule)
+Vaule::Vaule(const std::string& vaule) : _vaule(vaule)
 {
 }
 Vaule::~Vaule()
 {
 }
 
-Vaule &Vaule::operator=(bool vaule)
+Vaule& Vaule::operator=(bool vaule)
 {
     _vaule = vaule ? "true" : "false";
     return *this;
 }
-Vaule &Vaule::operator=(int vaule)
+Vaule& Vaule::operator=(int vaule)
 {
     std::stringstream ss;
     ss << vaule;
     _vaule = ss.str();
     return *this;
 }
-Vaule &Vaule::operator=(double vaule)
+Vaule& Vaule::operator=(double vaule)
 {
     std::stringstream ss;
     ss << vaule;
     _vaule = ss.str();
     return *this;
 }
-Vaule &Vaule::operator=(const char *vaule)
+Vaule& Vaule::operator=(const char* vaule)
 {
     _vaule = vaule;
     return *this;
 }
-Vaule &Vaule::operator=(const std::string vaule)
+Vaule& Vaule::operator=(const std::string vaule)
 {
     _vaule = vaule;
     return *this;
 }
 
-bool Vaule::operator==(const Vaule &other)
+bool Vaule::operator==(const Vaule& other)
 {
     return _vaule == other._vaule;
 }
-bool Vaule::operator!=(const Vaule &other)
+bool Vaule::operator!=(const Vaule& other)
 {
     return !((*this) == other);
 }
@@ -96,22 +96,28 @@ Vaule::operator std::string()
 Xml::Xml() : _name(nullptr), _text(nullptr), _attrs(nullptr), _child(nullptr)
 {
 }
-Xml::Xml(const char *name) : _name(nullptr), _text(nullptr), _attrs(nullptr), _child(nullptr)
+Xml::Xml(const char* name) : _name(nullptr), _text(nullptr), _attrs(nullptr), _child(nullptr)
 {
     _name = new std::string(name);
 }
-Xml::Xml(const std::string &name) : _name(nullptr), _text(nullptr), _attrs(nullptr), _child(nullptr)
+Xml::Xml(const std::string& name) : _name(nullptr), _text(nullptr), _attrs(nullptr), _child(nullptr)
 {
     _name = new std::string(name);
 }
-Xml::Xml(const Xml &other)
+Xml::Xml(const Xml& other)
 {
     _name = other._name;
     _text = other._text;
     _attrs = other._attrs;
     _child = other._child;
 }
-Xml &Xml::operator=(const Xml &other)
+Xml::Xml(const std::string& node, const std::map<std::string, Vaule>& mp, const std::string text): _child(nullptr)
+{
+    _name = new std::string(node);
+    _attrs = new std::map<std::string, Vaule>(mp);
+    _text = new std::string(text);
+}
+Xml& Xml::operator=(const Xml& other)
 {
     clear();
     _name = other._name;
@@ -129,7 +135,7 @@ std::string Xml::name() const
     }
     return *_name;
 }
-void Xml::name(const std::string &name)
+void Xml::name(const std::string& name)
 {
     if (_name != nullptr)
     {
@@ -147,7 +153,7 @@ std::string Xml::text() const
     }
     return *_text;
 }
-void Xml::text(const std::string &text)
+void Xml::text(const std::string& text)
 {
     if (_text != nullptr)
     {
@@ -157,7 +163,7 @@ void Xml::text(const std::string &text)
     _text = new std::string(text);
 }
 
-Vaule &Xml::attr(const std::string &key)
+Vaule& Xml::attr(const std::string& key)
 {
     if (_attrs == nullptr)
     {
@@ -165,7 +171,7 @@ Vaule &Xml::attr(const std::string &key)
     }
     return (*_attrs)[key];
 }
-void Xml::attr(const std::string &key, const Vaule &val)
+void Xml::attr(const std::string& key, const Vaule& val)
 {
     if (_attrs == nullptr)
     {
@@ -182,10 +188,10 @@ std::string Xml::str() const
     }
     std::stringstream ss;
     ss << "<";
-    ss << *_name;
+    ss << (*_name);
     if (_attrs != nullptr)
     {
-        for (const auto &e : (*_attrs))
+        for (const auto& e : (*_attrs))
         {
             ss << " " << e.first << "=\"" << e.second.GetVaule() << "\"";
         }
@@ -197,7 +203,7 @@ std::string Xml::str() const
     ss << ">";
     if (_child != nullptr)
     {
-        for (const auto &e : (*_child))
+        for (const auto& e : (*_child))
         {
             ss << e.str();
         }
@@ -209,7 +215,7 @@ std::string Xml::str() const
     ss << "</" << *_name << ">";
     return ss.str();
 }
-void Xml::append(const Xml &child)
+void Xml::append(const Xml& child)
 {
     if (_child == nullptr)
     {
@@ -217,7 +223,7 @@ void Xml::append(const Xml &child)
     }
     _child->push_back(child);
 }
-Xml &Xml::operator[](int index)
+Xml& Xml::operator[](int index)
 {
     if (index < 0)
     {
@@ -247,11 +253,11 @@ Xml &Xml::operator[](int index)
     return _child->back();
 }
 
-Xml &Xml::operator[](const char *name)
+Xml& Xml::operator[](const char* name)
 {
     return (*this)[std::string(name)];
 }
-Xml &Xml::operator[](const std::string name)
+Xml& Xml::operator[](const std::string name)
 {
     if (_child == nullptr)
     {
@@ -293,11 +299,11 @@ void Xml::remove(int index)
     it->clear();
     _child->erase(it);
 }
-void Xml::remove(const char *name)
+void Xml::remove(const char* name)
 {
     remove(std::string(name));
 }
-void Xml::remove(const std::string &name)
+void Xml::remove(const std::string& name)
 {
     if (_child == nullptr)
     {
@@ -343,20 +349,20 @@ void Xml::clear()
         _child = nullptr;
     }
 }
-bool Xml::load(const std::string &filename)
+bool Xml::load(const std::string& filename)
 {
     Parser p;
-    if(!p.load_file(filename))
+    if (!p.load_file(filename))
     {
         return false;
     }
     *this = p.parse();
     return true;
 }
-bool Xml::save(const std::string &filename)
+bool Xml::save(const std::string& filename)
 {
     std::ofstream out(filename);
-    if(out.fail())
+    if (out.fail())
     {
         return false;
     }
@@ -364,10 +370,10 @@ bool Xml::save(const std::string &filename)
     out.close();
     return true;
 }
-bool Xml::parse(const std::string &str)
+bool Xml::parse(const std::string& str)
 {
     Parser p;
-    if(!p.load_string(str))
+    if (!p.load_string(str))
     {
         return false;
     }

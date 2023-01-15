@@ -1,7 +1,7 @@
 #include "./xml/Xml.h"
 using namespace yazi::xml;
 
-
+#include <vector>
 int main()
 {
     // Xml s1("student1");
@@ -28,10 +28,45 @@ int main()
     // std::cout << root.str() << std::endl;
     // root.clear();
     // return 0;
-
+    Xml ip1("addr",{{"ip","192.168.0.2"},{"mac","AB-BI-B7-0C"}},"hello world");
 
     Xml root;
+    root.name("CATALOG");
     root.load("./test_xml");
+    // for(auto it = root.begin(); it != root.end(); ++it)
+    // {
+    //     std::cout << it->str() << std::endl;
+    // }
+    root["PLANT"].append(ip1);
+    root["PLANT"].remove("addr");
+    root.remove("PLANT");
+    //std::cout <<  root.str() << std::endl;
     std::cout << root.str() << std::endl;
     root.clear();
+    // Xml root;
+    // root.name("root");
+    // Xml ip("addr");
+    // ip.attr("ip","192.168.0.1");
+    // ip.attr("mac","AB-BI-B7-0C");
+    // Xml ip1("addr",{{"ip","192.168.0.2"},{"mac","AB-BI-B7-0C"}});
+    // root.append(ip);
+    // root.append(ip1);
+    // std::cout << root.str() << std::endl;
+    //root.clear();
+    // Xml ip("addr");
+    // ip.attr("ip","192.168.0.0.1");
+    // ip.attr("mac","AB-BI-B7-0C");
+    // root.append(ip);
+    // std::cout << root.str() << std::endl;
+    // ip1.attr("ip","192.168.0.0.1");
+    // ip1.attr("mac","AB-BI-B7-0C");
+    // Xml ip1("addr");
+    // ip1.attr("ip","192.168.0.0.1");
+    // ip1.attr("mac","AB-BI-B7-0C");
+    // Xml ip1("addr");
+    // ip1.attr("ip","192.168.0.0.1");
+    // ip1.attr("mac","AB-BI-B7-0C");
+    // Xml ip1("addr");
+    // ip1.attr("ip","192.168.0.0.1");
+    // ip1.attr("mac","AB-BI-B7-0C");
 }

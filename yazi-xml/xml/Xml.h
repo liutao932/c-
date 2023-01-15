@@ -19,7 +19,7 @@ namespace yazi
             Vaule(const char* vaule);
             Vaule(const std::string& vaule);
             ~Vaule();
-            
+
             Vaule& operator=(bool vaule);
             Vaule& operator=(int vaule);
             Vaule& operator=(double vaule);
@@ -32,7 +32,7 @@ namespace yazi
             operator double();
             operator std::string();
             std::string GetVaule()const { return _vaule; }
-           // friend std::stringstream& operator<<(std::stringstream& ss, const Vaule& vaule);
+            // friend std::stringstream& operator<<(std::stringstream& ss, const Vaule& vaule);
         private:
             std::string _vaule;
         };
@@ -45,6 +45,7 @@ namespace yazi
             Xml(const std::string& name);
             Xml(const Xml& other);
             Xml& operator=(const Xml& other);
+            Xml(const std::string& node, const std::map<std::string, Vaule>& mp,const std::string text= "");
             //节点名称
             std::string name() const;
             void name(const std::string& name);
@@ -55,7 +56,7 @@ namespace yazi
 
             //节点属性
             Vaule& attr(const std::string& key);
-            void attr(const std::string& key,const Vaule& val);
+            void attr(const std::string& key, const Vaule& val);
 
 
             std::string str()const;
@@ -96,10 +97,11 @@ namespace yazi
         private:
             std::string* _name;
             std::string* _text;
-            std::map<std::string,Vaule>* _attrs;
+            std::map<std::string, Vaule>* _attrs;
             std::list<Xml>* _child;
         };
     }
 }
 
 
+    
